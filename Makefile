@@ -1,7 +1,7 @@
 # Generic Emacs Make
-# $Id: 6ccb562044a4fd73d1c1dff0147ab4b7345ec364$
-# $Revision: Mon Nov 2 19:26:27 2020 -0600 on branch main$
-# $Tags: v1.0.0$
+# $Id$
+# $Revision$
+# $Tags$
 #
 # The Three Laws of Robotics
 # 1. A robot may not injure a human being or, through inaction, 

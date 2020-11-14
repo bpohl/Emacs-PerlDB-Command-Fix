@@ -1,7 +1,7 @@
 ;;; PerlDB Commandline Fix
-;;; $Id: 6607d711ce2bc86ddcdac27e99234faaa38bc983$
-;;; $Revision: Sun Apr 12 09:54:50 2020 -0500 on branch Ubuntu$
-;;; $Tags: v1.0.1$
+;;; $Id$
+;;; $Revision$
+;;; $Tags$
 ;;;
 ;;; The Three Laws of Robotics
 ;;; 1. A robot may not injure a human being or, through inaction, 
@@ -13,41 +13,30 @@
 ;;;                                                -- Isaac Asimov
 ;;;
 ;;; 
-;;; The perldb that is part of gud creates a default command line to
+;;; The perldb that is part of GUD creates a default command line to
 ;;; run the Perl script in debugger mode but fails to put the path to
 ;;; the script in quotes or escape special characters.  This package
-;;; wraps gud's perldb and injects a properly formatted command line
+;;; wraps GUD's perldb and injects a properly formatted command line
 ;;; into the gud-perldb-history list so that it appears when the
 ;;; actual perldb is called.
 
-;; Load gud so perldb, gud-perldb-command-name, and gud-perldb-history
-;; are available
-(require 'gud)
+;; Define variables from GUD for the compiler
+(defvar gud-perldb-command-name)
+(defvar gud-perldb-history)
 
-;; Make a new symbol that points to the real perldb and free the
-;; symbol perldb
-(declare-function gud-perldb "perldb-command-fix" (&optional command-line))
-(fset 'gud-perldb (symbol-function 'perldb))
-(fmakunbound 'perldb)
-
-;; Define the new perldb 
-(defun perldb (&optional command-line)
+;; Define the new (interactive) for perldb 
+(defun perldb-command-fix (command-line)
   "Wrapper to perldb that quotes the file path."
-  (interactive)
-  (if command-line
-      (gud-perldb command-line)
-    (progn
-      (if buffer-file-name
-          (add-to-list 'gud-perldb-history
-                       (format "%s %S" gud-perldb-command-name
-                               buffer-file-name)))
-      (call-interactively 'gud-perldb))))
+  (interactive
+   (lambda (spec)
+     (if buffer-file-name
+         (add-to-list 'gud-perldb-history
+                      (format "%s %S" gud-perldb-command-name
+                                      buffer-file-name)))
+     (advice-eval-interactive-spec spec))))
 
-;; Copy the original documentation to the new perldb and add to it.)
-(function-put 'perldb 'function-documentation
-              (concat (replace-regexp-in-string "(fn .+?)" ""
-                                                (documentation 'gud-perldb t))
-                      "This version is a special wrapper that quotes and "
-                      "escapes the path\nto the script file."))
+;; Tell Emacs that perldb-command-fix comes before perldb
+(advice-add 'perldb :before #'perldb-command-fix)
+
 
 (provide 'perldb-command-fix)
